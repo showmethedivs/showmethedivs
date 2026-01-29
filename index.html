@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#11998e">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="description" content="Calculate your dividend earnings from stocks">
+    <title>Show me the divs!</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            touch-action: manipulation;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px 25px;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 14px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: #555;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        input {
+            width: 100%;
+            padding: 15px;
+            font-size: 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            transition: border-color 0.3s;
+            -webkit-appearance: none;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #11998e;
+        }
+
+        .result-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 30px;
+            color: #333;
+            text-align: center;
+            border: 2px solid #e0e0e0;
+        }
+
+        .result-label {
+            font-size: 14px;
+            opacity: 0.7;
+            margin-bottom: 10px;
+            color: #666;
+        }
+
+        .result-amount {
+            font-size: 42px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #1a7f37;
+        }
+
+        .frequency-toggle {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .frequency-btn {
+            flex: 1;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            color: white;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .frequency-btn.active {
+            background: rgba(255, 255, 255, 0.9);
+            color: #667eea;
+        }
+
+        .breakdown {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .breakdown-item {
+            text-align: center;
+        }
+
+        .breakdown-label {
+            font-size: 12px;
+            opacity: 0.7;
+            margin-bottom: 5px;
+            color: #666;
+        }
+
+        .breakdown-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a7f37;
+        }
+
+        /* Social media icon hover effects */
+        a[title*="Share"]:hover,
+        a[title*="Follow"]:hover {
+            color: #11998e !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💰 Show me the divs!</h1>
+
+        <div class="input-group">
+            <div style="display: grid; grid-template-columns: 1fr auto; gap: 10px;">
+                <input type="text" id="stock" placeholder="Enter ticker (e.g., AAPL)" style="text-transform: uppercase;" autocomplete="off" autocorrect="off" autocapitalize="characters">
+                <button id="search-btn" style="padding: 15px 20px; background: #11998e; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; white-space: nowrap;">Search</button>
+            </div>
+            <div id="stock-info" style="margin-top: 10px; padding: 10px; background: #f5f5f5; border-radius: 8px; font-size: 14px; display: none;"></div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <div class="input-group" style="margin-bottom: 0;">
+                <label for="shares">Shares</label>
+                <input type="number" id="shares" placeholder="100" value="100" min="0" step="1" inputmode="numeric" pattern="[0-9]*">
+            </div>
+
+            <div class="input-group" style="margin-bottom: 0;">
+                <label for="dividend"><span id="dividend-label">Dividend ($)</span></label>
+                <input type="number" id="dividend" placeholder="0.50" value="0.50" min="0" step="0.01" inputmode="decimal">
+            </div>
+        </div>
+
+        <div class="result-card">
+            <div class="result-label">Annual Dividend Income</div>
+            <div class="result-amount">$<span id="annual-result">200.00</span></div>
+            
+            <div class="breakdown">
+                <div class="breakdown-item">
+                    <div class="breakdown-label">Per Payment</div>
+                    <div class="breakdown-value">$<span id="per-payment">50.00</span></div>
+                </div>
+                <div class="breakdown-item">
+                    <div class="breakdown-label">Monthly</div>
+                    <div class="breakdown-value">$<span id="monthly">16.67</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 20px; padding-top: 15px;">
+            <a href="https://www.buymeacoffee.com/showmethedivs" target="_blank" style="text-decoration: none; color: #11998e; font-size: 14px; display: inline-flex; align-items: center; gap: 5px;">
+                ☕ Buy me a coffee
+            </a>
+        </div>
+
+        <div style="text-align: center; margin-top: 15px; display: flex; gap: 20px; justify-content: center; align-items: center;">
+            <a href="https://twitter.com/intent/tweet?text=Check%20out%20this%20dividend%20calculator!&url=https://www.showmethedivs.com" target="_blank" style="text-decoration: none; color: #555; font-size: 24px; transition: color 0.3s;" title="Share on X">
+                𝕏
+            </a>
+            <a href="https://www.facebook.com/sharer/sharer.php?u=https://www.showmethedivs.com" target="_blank" style="text-decoration: none; color: #555; font-size: 24px; transition: color 0.3s;" title="Share on Facebook">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                </svg>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        const stockInput = document.getElementById('stock');
+        const searchBtn = document.getElementById('search-btn');
+        const stockInfo = document.getElementById('stock-info');
+        const sharesInput = document.getElementById('shares');
+        const dividendInput = document.getElementById('dividend');
+        const dividendLabel = document.getElementById('dividend-label');
+        const annualResult = document.getElementById('annual-result');
+        const perPayment = document.getElementById('per-payment');
+        const monthly = document.getElementById('monthly');
+
+        let currentFrequency = 4; // Default to quarterly
+        let calculateTimeout;
+
+        // Debounced calculate function for better performance
+        function debouncedCalculate() {
+            clearTimeout(calculateTimeout);
+            calculateTimeout = setTimeout(calculate, 150);
+        }
+
+        searchBtn.addEventListener('click', async () => {
+            const ticker = stockInput.value.trim().toUpperCase();
+            if (!ticker) {
+                alert('Please enter a stock ticker');
+                return;
+            }
+
+            searchBtn.textContent = 'Searching...';
+            searchBtn.disabled = true;
+
+            try {
+                // Using Financial Modeling Prep API (250 calls/day free tier)
+                const apiKey = 'h9bDc6aTVJxXsyAsPPl6rvLuaEkCFlMP';
+                const response = await fetch(`https://financialmodelingprep.com/api/v3/profile/${ticker}?apikey=${apiKey}`);
+                const data = await response.json();
+
+                if (data && data.length > 0 && data[0].symbol) {
+                    const stock = data[0];
+                    const stockName = stock.companyName || ticker;
+                    const price = stock.price || 0;
+                    
+                    // Get dividend data from quote endpoint
+                    const quoteResponse = await fetch(`https://financialmodelingprep.com/api/v3/quote/${ticker}?apikey=${apiKey}`);
+                    const quoteData = await quoteResponse.json();
+                    
+                    if (quoteData && quoteData.length > 0) {
+                        const quote = quoteData[0];
+                        
+                        // FMP doesn't have dividendRate directly, so we'll fetch from dividend calendar
+                        const divResponse = await fetch(`https://financialmodelingprep.com/api/v3/historical-price-full/stock_dividend/${ticker}?apikey=${apiKey}`);
+                        const divData = await divResponse.json();
+                        
+                        let annualDividend = 0;
+                        let divYield = 0;
+                        
+                        // Calculate annual dividend from recent dividends
+                        if (divData && divData.historical && divData.historical.length > 0) {
+                            // Get last 4 dividends to calculate annual amount
+                            const recentDividends = divData.historical.slice(0, 4);
+                            annualDividend = recentDividends.reduce((sum, div) => sum + (div.dividend || 0), 0);
+                            divYield = price > 0 ? (annualDividend / price) : 0;
+                        }
+                        
+                        if (annualDividend > 0) {
+                            // Set to quarterly dividend by default
+                            currentFrequency = 4;
+                            dividendInput.value = (annualDividend / currentFrequency).toFixed(4);
+                            dividendLabel.textContent = 'Dividend ($)';
+                            
+                            stockInfo.innerHTML = `
+                                <strong>${ticker}</strong> - ${stockName}<br>
+                                Annual Dividend: $${annualDividend.toFixed(2)}<br>
+                                Dividend Yield: ${(divYield * 100).toFixed(2)}%
+                            `;
+                            stockInfo.style.display = 'block';
+                            calculate();
+                        } else {
+                            stockInfo.innerHTML = `<strong>${ticker}</strong> - ${stockName}<br>This stock does not currently pay dividends`;
+                            stockInfo.style.display = 'block';
+                            dividendLabel.textContent = 'Dividend ($)';
+                        }
+                    } else {
+                        stockInfo.innerHTML = `Could not fetch dividend data for ${ticker}`;
+                        stockInfo.style.display = 'block';
+                    }
+                } else {
+                    stockInfo.innerHTML = `Stock "${ticker}" not found. Please check the ticker symbol.`;
+                    stockInfo.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                stockInfo.innerHTML = `Error fetching data. Please try again or enter dividend manually.`;
+                stockInfo.style.display = 'block';
+            }
+
+            searchBtn.textContent = 'Search';
+            searchBtn.disabled = false;
+        });
+
+        // Allow Enter key to search
+        stockInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                searchBtn.click();
+            }
+        });
+
+        function calculate() {
+            const shares = parseFloat(sharesInput.value) || 0;
+            const dividendPerShare = parseFloat(dividendInput.value) || 0;
+
+            const annualDividend = shares * dividendPerShare * currentFrequency;
+            const perPaymentAmount = annualDividend / currentFrequency;
+            const monthlyAmount = annualDividend / 12;
+
+            annualResult.textContent = annualDividend.toFixed(2);
+            perPayment.textContent = perPaymentAmount.toFixed(2);
+            monthly.textContent = monthlyAmount.toFixed(2);
+        }
+
+        sharesInput.addEventListener('input', debouncedCalculate);
+        dividendInput.addEventListener('input', debouncedCalculate);
+
+        // Initial calculation
+        calculate();
+    </script>
+</body>
+</html>
