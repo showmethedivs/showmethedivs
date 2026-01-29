@@ -245,12 +245,19 @@
 
             searchBtn.textContent = 'Searching...';
             searchBtn.disabled = true;
+            stockInfo.style.display = 'none';
 
             try {
                 // Using Alpha Vantage API - most reliable for dividend data
                 const apiKey = '9KV967N8VO9B7HNJ';
-                const response = await fetch(`https://www.alphavantage.co/query?function=OVERVIEW&symbol=${ticker}&apikey=${apiKey}`);
+                const url = `https://www.alphavantage.co/query?function=OVERVIEW&symbol=${ticker}&apikey=${apiKey}`;
+                console.log('Fetching:', url);
+                
+                const response = await fetch(url);
+                console.log('Response status:', response.status);
+                
                 const data = await response.json();
+                console.log('Response data:', data);
 
                 if (data.Symbol) {
                     const divPerShare = parseFloat(data.DividendPerShare) || 0;
@@ -279,13 +286,17 @@
                     // API rate limit reached
                     stockInfo.innerHTML = `API limit reached (25/day). Please try again later or enter dividend manually below.`;
                     stockInfo.style.display = 'block';
+                } else if (data.Information) {
+                    // API message
+                    stockInfo.innerHTML = `${data.Information}`;
+                    stockInfo.style.display = 'block';
                 } else {
                     stockInfo.innerHTML = `Stock "${ticker}" not found. Please check the ticker symbol.`;
                     stockInfo.style.display = 'block';
                 }
             } catch (error) {
-                console.error('Error:', error);
-                stockInfo.innerHTML = `Error fetching data. Please try again or enter dividend manually below.`;
+                console.error('Fetch error:', error);
+                stockInfo.innerHTML = `Error: ${error.message}. Please try again or enter dividend manually below.`;
                 stockInfo.style.display = 'block';
             }
 
