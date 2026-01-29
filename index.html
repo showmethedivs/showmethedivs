@@ -248,47 +248,72 @@
             stockInfo.style.display = 'none';
 
             try {
-                // Using Alpha Vantage API - most reliable for dividend data
-                const apiKey = '9KV967N8VO9B7HNJ';
-                const url = `https://www.alphavantage.co/query?function=OVERVIEW&symbol=${ticker}&apikey=${apiKey}`;
-                console.log('Fetching:', url);
+                // Using Twelve Data API - 800 calls/day free tier
+                const apiKey = '7e9068eae9dc4571ba2e8f807f4aafc6';
                 
-                const response = await fetch(url);
-                console.log('Response status:', response.status);
+                // Get stock profile/quote
+                const quoteUrl = `https://api.twelvedata.com/quote?symbol=${ticker}&apikey=${apiKey}`;
+                console.log('Fetching quote:', quoteUrl);
                 
-                const data = await response.json();
-                console.log('Response data:', data);
-
-                if (data.Symbol) {
-                    const divPerShare = parseFloat(data.DividendPerShare) || 0;
-                    const divYield = parseFloat(data.DividendYield) || 0;
-                    const stockName = data.Name || ticker;
+                const quoteResponse = await fetch(quoteUrl);
+                const quoteData = await quoteResponse.json();
+                console.log('Quote data:', quoteData);
+                
+                if (quoteData.code === 429) {
+                    stockInfo.innerHTML = `API rate limit reached. Please try again in a minute.`;
+                    stockInfo.style.display = 'block';
+                    searchBtn.textContent = 'Search';
+                    searchBtn.disabled = false;
+                    return;
+                }
+                
+                if (quoteData.symbol && quoteData.name) {
+                    const stockName = quoteData.name;
                     
-                    if (divPerShare > 0) {
+                    // Get dividend data
+                    const divUrl = `https://api.twelvedata.com/dividends?symbol=${ticker}&apikey=${apiKey}`;
+                    console.log('Fetching dividends:', divUrl);
+                    
+                    const divResponse = await fetch(divUrl);
+                    const divData = await divResponse.json();
+                    console.log('Dividend data:', divData);
+                    
+                    let annualDividend = 0;
+                    let divYield = 0;
+                    
+                    // Calculate annual dividend from recent payments
+                    if (divData.dividends && divData.dividends.length > 0) {
+                        // Get last 4 dividends to calculate annual
+                        const recentDividends = divData.dividends.slice(0, 4);
+                        annualDividend = recentDividends.reduce((sum, div) => sum + (parseFloat(div.amount) || 0), 0);
+                        
+                        // Calculate yield if we have price
+                        const price = parseFloat(quoteData.close) || 0;
+                        if (price > 0) {
+                            divYield = annualDividend / price;
+                        }
+                    }
+                    
+                    if (annualDividend > 0) {
                         // Set to quarterly dividend by default
                         currentFrequency = 4;
-                        dividendInput.value = (divPerShare / currentFrequency).toFixed(4);
+                        dividendInput.value = (annualDividend / currentFrequency).toFixed(4);
                         dividendLabel.textContent = 'Dividend ($)';
                         
                         stockInfo.innerHTML = `
                             <strong>${ticker}</strong> - ${stockName}<br>
-                            Annual Dividend: $${divPerShare.toFixed(2)}<br>
+                            Annual Dividend: $${annualDividend.toFixed(2)}<br>
                             Dividend Yield: ${(divYield * 100).toFixed(2)}%
                         `;
                         stockInfo.style.display = 'block';
                         calculate();
                     } else {
-                        stockInfo.innerHTML = `<strong>${ticker}</strong> - ${stockName}<br>This stock does not currently pay dividends`;
+                        stockInfo.innerHTML = `<strong>${ticker}</strong> - ${stockName}<br>This stock does not currently pay dividends or dividend data is unavailable.`;
                         stockInfo.style.display = 'block';
                         dividendLabel.textContent = 'Dividend ($)';
                     }
-                } else if (data.Note) {
-                    // API rate limit reached
-                    stockInfo.innerHTML = `API limit reached (25/day). Please try again later or enter dividend manually below.`;
-                    stockInfo.style.display = 'block';
-                } else if (data.Information) {
-                    // API message
-                    stockInfo.innerHTML = `${data.Information}`;
+                } else if (quoteData.message) {
+                    stockInfo.innerHTML = `${quoteData.message}`;
                     stockInfo.style.display = 'block';
                 } else {
                     stockInfo.innerHTML = `Stock "${ticker}" not found. Please check the ticker symbol.`;
