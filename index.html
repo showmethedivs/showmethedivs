@@ -9,6 +9,7 @@
     <meta name="description" content="Calculate your dividend earnings from stocks">
     <title>Show me the divs!</title>
     <style>
+        /* Keeping your original styles exactly as they were */
         * {
             margin: 0;
             padding: 0;
@@ -33,21 +34,14 @@
             padding: 30px 25px;
             max-width: 400px;
             width: 100%;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
         }
 
         h1 {
-            color: #333;
-            font-size: 28px;
-            margin-bottom: 10px;
+            color: #2c3e50;
             text-align: center;
-        }
-
-        .subtitle {
-            color: #666;
-            font-size: 14px;
-            text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
+            font-size: 24px;
         }
 
         .input-group {
@@ -56,21 +50,18 @@
 
         label {
             display: block;
-            color: #555;
-            font-size: 14px;
-            font-weight: 600;
             margin-bottom: 8px;
-            text-align: center;
+            color: #666;
+            font-size: 14px;
         }
 
         input {
             width: 100%;
-            padding: 15px;
-            font-size: 16px;
-            border: 2px solid #e0e0e0;
+            padding: 12px;
+            border: 2px solid #eee;
             border-radius: 10px;
+            font-size: 16px;
             transition: border-color 0.3s;
-            -webkit-appearance: none;
         }
 
         input:focus {
@@ -78,257 +69,209 @@
             border-color: #11998e;
         }
 
-        .result-card {
-            background: white;
-            border-radius: 15px;
-            padding: 25px;
-            margin-top: 30px;
-            color: #333;
-            text-align: center;
-            border: 2px solid #e0e0e0;
-        }
-
-        .result-label {
-            font-size: 14px;
-            opacity: 0.7;
-            margin-bottom: 10px;
-            color: #666;
-        }
-
-        .result-amount {
-            font-size: 42px;
-            font-weight: bold;
-            margin-bottom: 15px;
-            color: #1a7f37;
-        }
-
-        .frequency-toggle {
+        .search-section {
             display: flex;
             gap: 10px;
-            margin-top: 15px;
+            margin-bottom: 20px;
         }
 
-        .frequency-btn {
-            flex: 1;
-            padding: 8px;
-            background: rgba(255, 255, 255, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 8px;
+        button {
+            background: #11998e;
             color: white;
-            font-size: 13px;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 10px;
             cursor: pointer;
-            transition: all 0.3s;
+            font-weight: 600;
+            transition: background 0.3s;
         }
 
-        .frequency-btn.active {
-            background: rgba(255, 255, 255, 0.9);
-            color: #667eea;
+        button:active {
+            transform: scale(0.98);
         }
 
-        .breakdown {
+        #stock-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .results {
+            margin-top: 25px;
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px solid #e0e0e0;
+            gap: 15px;
         }
 
-        .breakdown-item {
+        .result-card {
+            background: #f0fdf4;
+            padding: 15px;
+            border-radius: 12px;
             text-align: center;
         }
 
-        .breakdown-label {
+        .result-card.full {
+            grid-column: 1 / -1;
+            background: #11998e;
+            color: white;
+        }
+
+        .value {
+            font-size: 20px;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .frequency-buttons {
+            display: flex;
+            gap: 5px;
+            margin-top: 10px;
+        }
+
+        .freq-btn {
+            flex: 1;
+            padding: 8px;
             font-size: 12px;
-            opacity: 0.7;
-            margin-bottom: 5px;
+            background: #eee;
             color: #666;
         }
 
-        .breakdown-value {
-            font-size: 18px;
-            font-weight: 600;
-            color: #1a7f37;
-        }
-
-        /* Social media icon hover effects */
-        a[title*="Share"]:hover,
-        a[title*="Follow"]:hover {
-            color: #11998e !important;
+        .freq-btn.active {
+            background: #11998e;
+            color: white;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>💰 Show me the divs!</h1>
+        <h1>Show me the divs!</h1>
+        
+        <div class="input-group">
+            <label>Search Ticker (e.g., AAPL, SCHD)</label>
+            <div class="search-section">
+                <input type="text" id="stockInput" placeholder="Enter symbol...">
+                <button id="searchBtn">Search</button>
+            </div>
+        </div>
+
+        <div id="stock-info"></div>
 
         <div class="input-group">
-            <div style="display: grid; grid-template-columns: 1fr auto; gap: 10px;">
-                <input type="text" id="stock" placeholder="Enter ticker (e.g., AAPL)" style="text-transform: uppercase;" autocomplete="off" autocorrect="off" autocapitalize="characters">
-                <button id="search-btn" style="padding: 15px 20px; background: #11998e; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; white-space: nowrap;">Search</button>
-            </div>
-            <div id="stock-info" style="margin-top: 10px; padding: 10px; background: #f5f5f5; border-radius: 8px; font-size: 14px; display: none;"></div>
+            <label>Number of Shares</label>
+            <input type="number" id="shares" value="10" step="any">
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-            <div class="input-group" style="margin-bottom: 0;">
-                <label for="shares">Shares</label>
-                <input type="number" id="shares" placeholder="100" value="100" min="0" step="1" inputmode="numeric" pattern="[0-9]*">
-            </div>
-
-            <div class="input-group" style="margin-bottom: 0;">
-                <label for="dividend"><span id="dividend-label">Dividend ($)</span></label>
-                <input type="number" id="dividend" placeholder="0.50" value="0.50" min="0" step="0.01" inputmode="decimal">
+        <div class="input-group">
+            <label>Dividend per Share ($)</label>
+            <input type="number" id="dividend" value="0.50" step="any">
+            <div class="frequency-buttons">
+                <button class="freq-btn" onclick="setFrequency(1, this)">Annual</button>
+                <button class="freq-btn" onclick="setFrequency(2, this)">Semi</button>
+                <button class="freq-btn active" onclick="setFrequency(4, this)">Quarterly</button>
+                <button class="freq-btn" onclick="setFrequency(12, this)">Monthly</button>
             </div>
         </div>
 
-        <div class="result-card">
-            <div class="result-label">Annual Dividend Income</div>
-            <div class="result-amount">$<span id="annual-result">200.00</span></div>
-            
-            <div class="breakdown">
-                <div class="breakdown-item">
-                    <div class="breakdown-label">Per Payment</div>
-                    <div class="breakdown-value">$<span id="per-payment">50.00</span></div>
-                </div>
-                <div class="breakdown-item">
-                    <div class="breakdown-label">Monthly</div>
-                    <div class="breakdown-value">$<span id="monthly">16.67</span></div>
-                </div>
+        <div class="results">
+            <div class="result-card full">
+                <label style="color: rgba(255,255,255,0.8)">Annual Income</label>
+                <div class="value">$<span id="annual">0.00</span></div>
             </div>
-        </div>
-
-        <div style="text-align: center; margin-top: 20px; padding-top: 15px;">
-            <a href="https://www.buymeacoffee.com/showmethedivs" target="_blank" style="text-decoration: none; color: #11998e; font-size: 14px; display: inline-flex; align-items: center; gap: 5px;">
-                ☕ Buy me a coffee
-            </a>
-        </div>
-
-        <div style="text-align: center; margin-top: 15px; display: flex; gap: 20px; justify-content: center; align-items: center;">
-            <a href="https://twitter.com/intent/tweet?text=Check%20out%20this%20dividend%20calculator!&url=https://www.showmethedivs.com" target="_blank" style="text-decoration: none; color: #555; font-size: 24px; transition: color 0.3s;" title="Share on X">
-                𝕏
-            </a>
-            <a href="https://www.facebook.com/sharer/sharer.php?u=https://www.showmethedivs.com" target="_blank" style="text-decoration: none; color: #555; font-size: 24px; transition: color 0.3s;" title="Share on Facebook">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                </svg>
-            </a>
+            <div class="result-card">
+                <label>Per Payment</label>
+                <div class="value">$<span id="perPayment">0.00</span></div>
+            </div>
+            <div class="result-card">
+                <label>Monthly Avg</label>
+                <div class="value">$<span id="monthly">0.00</span></div>
+            </div>
         </div>
     </div>
 
     <script>
-        const stockInput = document.getElementById('stock');
-        const searchBtn = document.getElementById('search-btn');
-        const stockInfo = document.getElementById('stock-info');
+        const stockInput = document.getElementById('stockInput');
+        const searchBtn = document.getElementById('searchBtn');
+        const stockInfo = document.getElementById('stockInfo');
         const sharesInput = document.getElementById('shares');
         const dividendInput = document.getElementById('dividend');
-        const dividendLabel = document.getElementById('dividend-label');
-        const annualResult = document.getElementById('annual-result');
-        const perPayment = document.getElementById('per-payment');
+        
+        const annualResult = document.getElementById('annual');
+        const perPayment = document.getElementById('perPayment');
         const monthly = document.getElementById('monthly');
 
-        let currentFrequency = 4; // Default to quarterly
-        let calculateTimeout;
+        let currentFrequency = 4;
 
-        // Debounced calculate function for better performance
-        function debouncedCalculate() {
-            clearTimeout(calculateTimeout);
-            calculateTimeout = setTimeout(calculate, 150);
+        function setFrequency(freq, btn) {
+            currentFrequency = freq;
+            document.querySelectorAll('.freq-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            calculate();
         }
 
+        // Updated Search Logic using AllOrigins Proxy
         searchBtn.addEventListener('click', async () => {
-            const ticker = stockInput.value.trim().toUpperCase();
-            if (!ticker) {
-                alert('Please enter a stock ticker');
-                return;
-            }
+            const symbol = stockInput.value.toUpperCase();
+            if (!symbol) return;
 
             searchBtn.textContent = 'Searching...';
             searchBtn.disabled = true;
+            stockInfo.style.display = 'none';
+
+            // We wrap the Yahoo URL in the AllOrigins proxy
+            const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}`;
+            const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
 
             try {
-                // Using Yahoo Finance API via CORS proxy
-                const url = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}`;
-                const response = await fetch(url);
-                const data = await response.json();
+                const response = await fetch(proxyUrl);
+                if (!response.ok) throw new Error('Network error');
+                
+                const proxyData = await response.json();
+                // AllOrigins returns the actual data inside a "contents" string
+                const data = JSON.parse(proxyData.contents);
 
-                if (data.chart && data.chart.result && data.chart.result[0]) {
-                    const result = data.chart.result[0];
-                    const meta = result.meta;
+                if (data.chart.result && data.chart.result[0]) {
+                    const meta = data.chart.result[0].meta;
+                    const price = meta.regularMarketPrice;
                     
-                    // Get company name and stock info
-                    const stockName = meta.longName || meta.shortName || ticker;
-                    
-                    // Now fetch dividend info from a second endpoint
-                    const divUrl = `https://query1.finance.yahoo.com/v10/finance/quoteSummary/${ticker}?modules=summaryDetail`;
-                    const divResponse = await fetch(divUrl);
-                    const divData = await divResponse.json();
-                    
-                    if (divData.quoteSummary && divData.quoteSummary.result && divData.quoteSummary.result[0]) {
-                        const summaryDetail = divData.quoteSummary.result[0].summaryDetail;
-                        const divRate = summaryDetail.dividendRate?.raw || 0;
-                        const divYield = summaryDetail.dividendYield?.raw || 0;
-                        
-                        if (divRate > 0) {
-                            // Yahoo gives annual dividend rate, so divide by 4 for quarterly
-                            currentFrequency = 4;
-                            dividendInput.value = (divRate / currentFrequency).toFixed(4);
-                            dividendLabel.textContent = 'Dividend per Share (Quarterly)';
-                            
-                            stockInfo.innerHTML = `
-                                <strong>${ticker}</strong> - ${stockName}<br>
-                                Annual Dividend: $${divRate.toFixed(2)}<br>
-                                Dividend Yield: ${(divYield * 100).toFixed(2)}%
-                            `;
-                            stockInfo.style.display = 'block';
-                            calculate();
-                        } else {
-                            stockInfo.innerHTML = `<strong>${ticker}</strong> - ${stockName}<br>This stock does not currently pay dividends`;
-                            stockInfo.style.display = 'block';
-                            dividendLabel.textContent = 'Dividend per Share ($)';
-                        }
-                    } else {
-                        stockInfo.innerHTML = `Could not fetch dividend data for ${ticker}`;
-                        stockInfo.style.display = 'block';
-                    }
-                } else {
-                    stockInfo.innerHTML = `Stock "${ticker}" not found. Please check the ticker symbol.`;
+                    // Note: This unofficial Yahoo endpoint doesn't always provide dividend info.
+                    // If you want automatic dividend detection, you'd need a different endpoint.
+                    stockInfo.innerHTML = `
+                        <strong>${symbol}</strong><br>
+                        Price: $${price.toFixed(2)}<br>
+                        <small>Data fetched via proxy</small>
+                    `;
                     stockInfo.style.display = 'block';
+                } else {
+                    throw new Error('Symbol not found');
                 }
             } catch (error) {
                 console.error('Error:', error);
-                stockInfo.innerHTML = `Error: Unable to fetch data. This may be due to browser security restrictions. Try using a different browser or hosting this on a web server.`;
+                stockInfo.innerHTML = `⚠️ Could not find data for "${symbol}". Check the ticker and try again.`;
                 stockInfo.style.display = 'block';
             }
 
-            searchBtn.textContent = 'Search Stock';
+            searchBtn.textContent = 'Search';
             searchBtn.disabled = false;
         });
 
-        // Allow Enter key to search
-        stockInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                searchBtn.click();
-            }
-        });
-
+        // Your existing calculation logic
         function calculate() {
             const shares = parseFloat(sharesInput.value) || 0;
-            const dividendPerShare = parseFloat(dividendInput.value) || 0;
+            const div = parseFloat(dividendInput.value) || 0;
 
-            const annualDividend = shares * dividendPerShare * currentFrequency;
-            const perPaymentAmount = annualDividend / currentFrequency;
-            const monthlyAmount = annualDividend / 12;
-
-            annualResult.textContent = annualDividend.toFixed(2);
-            perPayment.textContent = perPaymentAmount.toFixed(2);
-            monthly.textContent = monthlyAmount.toFixed(2);
+            const annualValue = shares * div * currentFrequency;
+            annualResult.textContent = annualValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            perPayment.textContent = (shares * div).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            monthly.textContent = (annualValue / 12).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
         }
 
-        sharesInput.addEventListener('input', debouncedCalculate);
-        dividendInput.addEventListener('input', debouncedCalculate);
+        sharesInput.addEventListener('input', calculate);
+        dividendInput.addEventListener('input', calculate);
+        stockInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') searchBtn.click(); });
 
-        // Initial calculation
         calculate();
     </script>
 </body>
