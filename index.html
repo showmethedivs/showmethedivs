@@ -249,61 +249,59 @@
             try {
                 // Using Financial Modeling Prep API (250 calls/day free tier)
                 const apiKey = 'h9bDc6aTVJxXsyAsPPl6rvLuaEkCFlMP';
-                const response = await fetch(`https://financialmodelingprep.com/api/v3/profile/${ticker}?apikey=${apiKey}`);
-                const data = await response.json();
-
-                if (data && data.length > 0 && data[0].symbol) {
-                    const stock = data[0];
-                    const stockName = stock.companyName || ticker;
-                    const price = stock.price || 0;
-                    
-                    // Get dividend data from quote endpoint
-                    const quoteResponse = await fetch(`https://financialmodelingprep.com/api/v3/quote/${ticker}?apikey=${apiKey}`);
-                    const quoteData = await quoteResponse.json();
-                    
-                    if (quoteData && quoteData.length > 0) {
-                        const quote = quoteData[0];
-                        
-                        // FMP doesn't have dividendRate directly, so we'll fetch from dividend calendar
-                        const divResponse = await fetch(`https://financialmodelingprep.com/api/v3/historical-price-full/stock_dividend/${ticker}?apikey=${apiKey}`);
-                        const divData = await divResponse.json();
-                        
-                        let annualDividend = 0;
-                        let divYield = 0;
-                        
-                        // Calculate annual dividend from recent dividends
-                        if (divData && divData.historical && divData.historical.length > 0) {
-                            // Get last 4 dividends to calculate annual amount
-                            const recentDividends = divData.historical.slice(0, 4);
-                            annualDividend = recentDividends.reduce((sum, div) => sum + (div.dividend || 0), 0);
-                            divYield = price > 0 ? (annualDividend / price) : 0;
-                        }
-                        
-                        if (annualDividend > 0) {
-                            // Set to quarterly dividend by default
-                            currentFrequency = 4;
-                            dividendInput.value = (annualDividend / currentFrequency).toFixed(4);
-                            dividendLabel.textContent = 'Dividend ($)';
-                            
-                            stockInfo.innerHTML = `
-                                <strong>${ticker}</strong> - ${stockName}<br>
-                                Annual Dividend: $${annualDividend.toFixed(2)}<br>
-                                Dividend Yield: ${(divYield * 100).toFixed(2)}%
-                            `;
-                            stockInfo.style.display = 'block';
-                            calculate();
-                        } else {
-                            stockInfo.innerHTML = `<strong>${ticker}</strong> - ${stockName}<br>This stock does not currently pay dividends`;
-                            stockInfo.style.display = 'block';
-                            dividendLabel.textContent = 'Dividend ($)';
-                        }
-                    } else {
-                        stockInfo.innerHTML = `Could not fetch dividend data for ${ticker}`;
-                        stockInfo.style.display = 'block';
-                    }
-                } else {
+                
+                // First get the stock profile
+                const profileResponse = await fetch(`https://financialmodelingprep.com/api/v3/profile/${ticker}?apikey=${apiKey}`);
+                const profileData = await profileResponse.json();
+                
+                console.log('Profile data:', profileData); // Debug log
+                
+                if (!profileData || profileData.length === 0 || profileData.error) {
                     stockInfo.innerHTML = `Stock "${ticker}" not found. Please check the ticker symbol.`;
                     stockInfo.style.display = 'block';
+                    searchBtn.textContent = 'Search';
+                    searchBtn.disabled = false;
+                    return;
+                }
+                
+                const stock = profileData[0];
+                const stockName = stock.companyName || ticker;
+                const price = stock.price || 0;
+                
+                // Get dividend data from stock dividend endpoint
+                const divResponse = await fetch(`https://financialmodelingprep.com/api/v3/historical-price-full/stock_dividend/${ticker}?apikey=${apiKey}`);
+                const divData = await divResponse.json();
+                
+                console.log('Dividend data:', divData); // Debug log
+                
+                let annualDividend = 0;
+                let divYield = 0;
+                
+                // Calculate annual dividend from recent dividends
+                if (divData && divData.historical && divData.historical.length > 0) {
+                    // Get last 4 dividends to calculate annual amount
+                    const recentDividends = divData.historical.slice(0, 4);
+                    annualDividend = recentDividends.reduce((sum, div) => sum + (parseFloat(div.dividend) || 0), 0);
+                    divYield = price > 0 ? (annualDividend / price) : 0;
+                }
+                
+                if (annualDividend > 0) {
+                    // Set to quarterly dividend by default
+                    currentFrequency = 4;
+                    dividendInput.value = (annualDividend / currentFrequency).toFixed(4);
+                    dividendLabel.textContent = 'Dividend ($)';
+                    
+                    stockInfo.innerHTML = `
+                        <strong>${ticker}</strong> - ${stockName}<br>
+                        Annual Dividend: $${annualDividend.toFixed(2)}<br>
+                        Dividend Yield: ${(divYield * 100).toFixed(2)}%
+                    `;
+                    stockInfo.style.display = 'block';
+                    calculate();
+                } else {
+                    stockInfo.innerHTML = `<strong>${ticker}</strong> - ${stockName}<br>This stock does not currently pay dividends or dividend data is unavailable.`;
+                    stockInfo.style.display = 'block';
+                    dividendLabel.textContent = 'Dividend ($)';
                 }
             } catch (error) {
                 console.error('Error:', error);
